@@ -2,7 +2,7 @@
 
 This shall be a tabbed divider for filofax type notebooks.
 
-### Basics
+### Main plate
 Parameters:
 - width, height, depth, default 80, 120, .4 mm
 - radius of rounded corners, default: 2.5mm
@@ -17,10 +17,19 @@ The bottom left corner shall be on coordinate 0,0
 
 There shall be an optional tab at the right hand side.
 They are slightly angled inwards (i.e. outside edge is narrower than base).
+It has rounded corners, and also the connection to the main plate is rounded.
 
 Paramerters:
 - enabled, default=true
 - width and height, default 50 and 10 mm
 - offset from top, default 5mm
 - angle for outside taper, default 75 degrees
+- radius of fillets connecting tab and corners, default 1mm
 
+### Technicalities
+
+Parameters shall be documented according to OpenSCAD customizer style:
+```scad
+// variable description
+variable name = defaultValue; // possible values
+```
