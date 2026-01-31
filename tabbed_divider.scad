@@ -21,6 +21,9 @@ hole_spacing = 19; // [5:0.1:30]
 // Distance from the left edge to the hole centers in mm
 hole_edge_distance = 7.5; // [2:0.1:20]
 
+// Width of the channel from hole to edge in mm. 0 to disable.
+hole_channel_width = 1; // [0:0.1:10]
+
 // Type of tab to generate (off, right, or top)
 tab_type = "off"; // ["off", "right", "top"]
 // Length of the tab along the divider's height or width in mm
@@ -147,8 +150,17 @@ module holes() {
 
     for (i = [0:hole_count-1]) {
         y_pos = y_start + i * hole_spacing;
+        
+        // The hole itself
         translate([hole_edge_distance, y_pos, -1]) {
             cylinder(h = hole_cylinder_height, d = hole_diameter, $fn=32);
+        }
+
+        // Optional channel from hole to the edge
+        if (hole_channel_width > 0) {
+            translate([0, y_pos - (hole_channel_width/2), -1]) {
+                cube([hole_edge_distance, hole_channel_width, hole_cylinder_height]);
+            }
         }
     }
 }
