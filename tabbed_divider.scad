@@ -156,10 +156,38 @@ module holes() {
             cylinder(h = hole_cylinder_height, d = hole_diameter, $fn=32);
         }
 
-        // Optional channel from hole to the edge
+        // Optional channel from hole to the edge with rounded corners
         if (hole_channel_width > 0) {
-            translate([0, y_pos - (hole_channel_width/2), -1]) {
-                cube([hole_edge_distance, hole_channel_width, hole_cylinder_height]);
+            r = hole_channel_width / 2; // Rounding radius, as specified
+            
+            translate([0, y_pos - r, -1]) { // Position the channel cutter relative to the hole's y_pos
+                linear_extrude(height = hole_cylinder_height) {
+                    union() {
+                        // The main rectangular part of the channel cutter
+                        square([hole_edge_distance, hole_channel_width]);
+
+                        // Bottom-left corner rounding cutter:
+                        // This shape is an r x r square MINUS a quarter circle.
+                        // When subtracted from the main body, it creates a convex quarter-circle fillet.
+                        translate([0, -r]) { // Position at bottom-left of the current channel segment
+                            difference() {
+                                square([r, r]); // The r x r square part
+                                // The quarter circle that is "added back" (subtracted from the square)
+                                translate([r, 0]) circle(r = r, $fn=32);
+                            }
+                        }
+
+                        // Top-left corner rounding cutter:
+                        // Similar logic for the top corner.
+                        translate([0, hole_channel_width ]) { // Position at top-left of the current channel segment
+                            difference() {
+                                square([r, r]); // The r x r square part
+                                // The quarter circle that is "added back" (subtracted from the square)
+                                translate([r, r]) circle(r = r, $fn=32);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
