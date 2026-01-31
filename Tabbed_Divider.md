@@ -15,12 +15,12 @@ The bottom left corner shall be on coordinate 0,0
 
 ### Tabs
 
-There shall be an optional tab at the right hand side.
+There shall be an optional tab at the top oNoiasdasdr right hand side.
 They are slightly angled inwards (i.e. outside edge is narrower than base).
 It has rounded corners, and also the connection to the main plate is rounded.
 
 Paramerters:
-- enabled, default=true
+- position, default=side
 - width and height, default 50 and 10 mm
 - offset from top, default 5mm
 - angle for outside taper, default 75 degrees
