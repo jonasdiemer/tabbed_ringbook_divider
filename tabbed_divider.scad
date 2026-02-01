@@ -1,10 +1,16 @@
 // Tabbed Divider for Filofax-style Notebooks
 // Based on specifications from Tabbed_Divider.md
 
+// --- Part Selection ---
+// Choose which part to display. For multi-color printing, export "divider" 
+// and "ruler" individually and import them as parts of a single object
+// in your slicer software.
+part_to_show = "all"; // ["all", "divider", "ruler"]
+
 // --- Parameters ---
 
 // Width of the main divider in mm
-divider_width = 78; // [50:1:200]
+divider_width = 78; // [15:1:200]
 // Height of the main divider in mm
 divider_height = 108; // [80:1:300]
 // Thickness of the divider material in mm
@@ -38,6 +44,33 @@ tab_taper_angle = 75;      // [0:1:90]
 tab_outer_radius = 2.5;    // [0:0.1:10]
 
 
+// --- Ruler Parameters ---
+// Enable a ruler on one of the edges
+ruler_enabled = false; // [true, false]
+// Position of the ruler ("top" or "right" edge)
+ruler_position = "top"; // ["top", "right"]
+// Distance from the edge to the ruler marks' baseline.
+ruler_offset = 5; // [0:0.5:20]
+// Depth of the ruler marks inlay in mm. For multi-color printing.
+ruler_mark_depth = 0.2; // [0.1:0.1:1]
+// Width of each tick mark in mm.
+ruler_tick_width = 0.4; // [0.2:0.1:2]
+// Length of major tick marks (e.g., every 10mm).
+ruler_major_tick_length = 10; // [5:1:20]
+// Length of minor tick marks (e.g., every 1mm).
+ruler_minor_tick_length = 5; // [2:1:10]
+// Spacing for major ticks (e.g., 10 for cm).
+ruler_major_tick_spacing = 10; // [5:1:20]
+// Spacing for minor ticks (e.g., 1 for mm).
+ruler_minor_tick_spacing = 1; // [1:1:10]
+// Display numbers on major ticks.
+ruler_show_numbers = true; // [true, false]
+// Font size for ruler numbers.
+ruler_font_size = 5; // [4:1:12]
+// Font for the numbers
+ruler_font = "Liberation Sans"; //
+
+
 // --- Helper Modules ---
 
 // Creates a 2D rectangle with rounded corners
@@ -50,6 +83,60 @@ module rounded_rectangle(size, r) {
         translate([w - r, r]) circle(r = r);
         translate([r, h - r]) circle(r = r);
         translate([w - r, h - r]) circle(r = r);
+    }
+}
+
+
+// --- Ruler Components ---
+
+// Generates the 2D geometry for the ruler marks.
+module ruler_marks_2d() {
+    if (ruler_enabled) {
+        if (ruler_position == "top") {
+            // Ruler along the top edge
+            // Note: May overlap with a "top" tab. Adjust ruler_offset or tab_offset.
+            translate([0, divider_height - ruler_offset, 0]) {
+                for (x = [0 : ruler_minor_tick_spacing : divider_width - divider_radius]) {
+                    is_major_tick = (x % ruler_major_tick_spacing == 0);
+                    tick_len = is_major_tick ? ruler_major_tick_length : ruler_minor_tick_length;
+
+                    // Draw tick mark
+                    translate([x, -tick_len, 0]) {
+                        square([ruler_tick_width, tick_len]);
+                    }
+
+                    // Draw number for major ticks
+                    if (is_major_tick && ruler_show_numbers && x > 0) {
+                        number_text = str(x / ruler_major_tick_spacing);
+                        translate([x + ruler_tick_width / 2, -tick_len - 2, 0]) {
+                            text(number_text, size = ruler_font_size, font = ruler_font, halign = "center", valign = "top");
+                        }
+                    }
+                }
+            }
+        } else if (ruler_position == "right") {
+            // Ruler along the right edge
+            // Note: May overlap with a "right" tab. Adjust ruler_offset or tab_offset.
+            translate([divider_width - ruler_offset, 0, 0]) {
+                for (y = [0 : ruler_minor_tick_spacing : divider_height - divider_radius]) {
+                    is_major_tick = (y % ruler_major_tick_spacing == 0);
+                    tick_len = is_major_tick ? ruler_major_tick_length : ruler_minor_tick_length;
+                    
+                    // Draw tick mark
+                    translate([-tick_len, y, 0]) {
+                        square([tick_len, ruler_tick_width]);
+                    }
+
+                    // Draw number for major ticks
+                    if (is_major_tick && ruler_show_numbers && y > 0) {
+                        number_text = str(y / ruler_major_tick_spacing);
+                        translate([-tick_len - 2, y + ruler_tick_width / 2, 0]) {
+                            text(number_text, size = ruler_font_size, font = ruler_font, halign = "right", valign = "center");
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -196,10 +283,47 @@ module holes() {
 
 // --- Final Assembly ---
 
-difference() {
-    union() {
-        body();
-        tab();
+// This module creates the main divider with holes and cutouts for the ruler.
+module divider_main() {
+    difference() {
+        union() {
+            body();
+            tab();
+        }
+        holes();
+        
+        if (ruler_enabled) {
+            // Create cutouts for the ruler inlay
+            translate([0, 0, divider_depth - ruler_mark_depth]) {
+                linear_extrude(height = ruler_mark_depth + 0.1) { // Add a bit to ensure clean cut
+                    ruler_marks_2d();
+                }
+            }
+        }
     }
-    holes();
+}
+
+// This module creates only the ruler inlay part.
+module ruler_inlay() {
+    if (ruler_enabled) {
+        translate([0, 0, divider_depth - ruler_mark_depth]) {
+            linear_extrude(height = ruler_mark_depth) {
+                ruler_marks_2d();
+            }
+        }
+    }
+}
+
+// Render the selected part(s). For multi-color printing, you can export
+// "divider" and "ruler" as separate STL files and then import them as
+// parts of a single object in your slicer software (like BambuStudio).
+if (part_to_show == "all" || part_to_show == "divider") {
+    color("black") {
+        divider_main();
+    }
+}
+if (part_to_show == "all" || part_to_show == "ruler") {
+    color("white") {
+        ruler_inlay();
+    }
 }
