@@ -63,6 +63,8 @@ ruler_major_tick_spacing = 10; // [5:1:20]
 ruler_minor_tick_spacing = 1; // [1:1:10]
 // Display numbers on major ticks.
 ruler_show_numbers = true; // [true, false]
+// Add a ruler to the backside of the divider.
+ruler_on_backside = false; // [true, false]
 // Font size for ruler numbers.
 ruler_font_size = 5; // [4:1:12]
 // Font for the numbers
@@ -132,6 +134,63 @@ module ruler_marks_2d() {
                         number_text = str(y / ruler_major_tick_spacing);
                         translate([-tick_len - ruler_number_offset, y + ruler_tick_width / 2, 0]) {
                             text(number_text, size = ruler_font_size, font = ruler_font, halign = "right", valign = "center");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Generates the 2D geometry for the ruler marks on the backside.
+module ruler_marks_2d_backside() {
+    if (ruler_position != "off") {
+        if (ruler_position == "top") {
+            // Ruler along the top edge, for the backside view
+            // To make numbers read correctly from the back, we rotate the text
+            translate([0, divider_height - ruler_offset, 0]) {
+                for (x = [0 : ruler_minor_tick_spacing : divider_width - ruler_tick_width]) {
+                    is_major_tick = (x % ruler_major_tick_spacing == 0);
+                    tick_len = is_major_tick ? ruler_major_tick_length : ruler_minor_tick_length;
+
+                    // Draw tick mark (same position as front, but effectively on the other side of the divider)
+                    translate([x, -tick_len, 0]) {
+                        square([ruler_tick_width, tick_len]);
+                    }
+
+                    // Draw number for major ticks
+                    if (is_major_tick && ruler_show_numbers && x > 0) {
+                        number_text = str(x / ruler_major_tick_spacing);
+                        // Rotate 180 degrees around x-axis and translate for correct display from back
+                        translate([x + ruler_tick_width / 2, -tick_len - ruler_number_offset, 0]) {
+                             rotate([180, 0, 0]) { // Flip upside down
+                                text(number_text, size = ruler_font_size, font = ruler_font, halign = "center", valign = "bottom");
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (ruler_position == "right") {
+            // Ruler along the right edge, for the backside view
+            // To make numbers read correctly from the back, we rotate the text
+            translate([divider_width - ruler_offset, 0, 0]) {
+                for (y = [0 : ruler_minor_tick_spacing : divider_height - ruler_tick_width]) {
+                    is_major_tick = (y % ruler_major_tick_spacing == 0);
+                    tick_len = is_major_tick ? ruler_major_tick_length : ruler_minor_tick_length;
+                    
+                    // Draw tick mark (same position as front, but effectively on the other side of the divider)
+                    translate([-tick_len, y, 0]) {
+                        square([tick_len, ruler_tick_width]);
+                    }
+
+                    // Draw number for major ticks
+                    if (is_major_tick && ruler_show_numbers && y > 0) {
+                        number_text = str(y / ruler_major_tick_spacing);
+                        // Rotate 180 degrees around y-axis and translate for correct display from back
+                        translate([-tick_len - ruler_number_offset, y + ruler_tick_width / 2, 0]) {
+                            rotate([0, 180, 0]) { // Flip horizontally
+                                text(number_text, size = ruler_font_size, font = ruler_font, halign = "left", valign = "center");
+                            }
                         }
                     }
                 }
@@ -292,14 +351,7 @@ module divider_main() {
         }
         holes();
         
-        if (ruler_position != "off") {
-            // Create cutouts for the ruler inlay
-            translate([0, 0, divider_depth - ruler_mark_depth]) {
-                linear_extrude(height = ruler_mark_depth + 0.1) { // Add a bit to ensure clean cut
-                    ruler_marks_2d();
-                }
-            }
-        }
+
     }
 }
 
@@ -309,6 +361,13 @@ module ruler_inlay() {
         translate([0, 0, divider_depth - ruler_mark_depth]) {
             linear_extrude(height = ruler_mark_depth) {
                 ruler_marks_2d();
+            }
+        }
+        if (ruler_on_backside) {
+            translate([0, 0, 0]) { // Start at z=0 (bottom surface)
+                linear_extrude(height = ruler_mark_depth) { // Extrude upwards
+                    ruler_marks_2d_backside();
+                }
             }
         }
     }

@@ -42,6 +42,7 @@ Parameters:
 - major/minor tick length, default=10mm/5mm
 - major/minor tick spacing, default=10mm/1mm
 - show numbers, default=true
+- show numbers on backside, default=false
 - number font size, default=5mm
 - number offset from tick, default=2mm
 
