@@ -1,6 +1,8 @@
 ## Tabbed Divider
 
-This shall be a tabbed divider for filofax type notebooks.
+This is a tabbed divider generator for filofax type notebooks.
+
+Built with AI (Gemini).
 
 ### Main plate
 Parameters:
@@ -53,3 +55,4 @@ Parameters shall be documented according to OpenSCAD customizer style:
 // variable description
 variable name = defaultValue; // possible values
 ```
+![Tabbed Divider Screenshot](screenshot.png)
