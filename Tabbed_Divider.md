@@ -35,8 +35,7 @@ To export for multi-color printing, use the `part_to_show` parameter in the Open
 
 Parameters:
 - `part_to_show`: "all", "divider", "ruler". Selects which part of the model to render. Default: "all".
-- enabled, default=false
-- position (top or right), default=top
+- position ("off", "top", or "right"), default="off"
 - offset from edge, default=5mm
 - depth of inlay marks, default=0.2mm
 - tick width, default=0.4mm
@@ -44,6 +43,7 @@ Parameters:
 - major/minor tick spacing, default=10mm/1mm
 - show numbers, default=true
 - number font size, default=5mm
+- number offset from tick, default=2mm
 
 ### Technicalities
 
